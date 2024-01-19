@@ -1,0 +1,60 @@
+version: '3.3'
+
+services:
+
+   mariadb:
+     image: "mariadb:10"
+     networks:
+        - interna
+     environment:
+        MYSQL_ROOT_PASSWORD: aeH@nRXvxJ_9H6w7
+     volumes:
+        - db_mysql:/var/lib/mysql
+     deploy:
+        mode: replicated
+        replicas: 3
+        update_config:
+           parallelism: 1
+           delay: 10s
+        restart_policy:
+           condition: on-failure
+
+   myadmin:
+     image: "phpmyadmin/phpmyadmin:4.7.0"
+#     environment:
+#        PMA_HOST: "mariadb"
+#     depends_on:
+#        - mariadb
+#     networks:
+#        - interna
+#        - net-proxy
+#     deploy:
+#        mode: replicated
+#        replicas: 3
+#        update_config:
+#           parallelism: 1
+#           delay: 10s
+#        restart_policy:
+#          condition: on-failure
+#        labels:
+#           - "traefik.front.rule=Host:myadmin.opovo.local"
+#           - "traefik.enable=true"
+#           - "traefik.port=80"
+#           - "traefik.docker.network=net-proxy"
+#           - "traefik.frontend.entryPoints=http"
+#           - "traefik.backend.loadbalancer.stickiness=true"
+
+networks:
+   interna:
+      external: true
+      driver: overlay
+#   net-proxy:
+#      external: true
+#      driver: overlay
+ 
+volumes:
+   db_mysql:
+      driver_opts:
+         type: "nfs"
+         device: :/dir_persistence_volume_docker/db_mysql/
+         o: addr=192.168.30.104,rw,nolock,soft

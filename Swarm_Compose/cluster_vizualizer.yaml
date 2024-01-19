@@ -1,0 +1,37 @@
+version: "3.3"
+
+services:
+
+   cluster-visualizer:
+      image: "dockersamples/visualizer:latest"
+      volumes:
+         - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      networks:
+         - net-proxy
+      deploy:
+         mode: global
+         placement:
+            constraints: [node.role == manager]
+         resources:
+            limits:
+               memory: 50m
+         restart_policy:
+            condition: on-failure
+            delay: 5s
+            max_attempts: 3
+            window: 120s
+         labels:
+            - "traefik.frontend.rule=Host:visualizer.labary.local"
+            - "traefik.port=8080"        
+            - "traefik.docker.network=net-proxy"
+            - "traefik.frontend.entryPoints=https"
+            - "traefik.backend.loadbalancer.stickiness=true"
+            - "traefik.backend.loadbalancer.method=drr"
+            - "traefik.backend.loadbalancer.swarm=true"
+            - "traefik.enable=true"
+
+
+networks:
+   net-proxy:
+      external: true
+      driver: overlay

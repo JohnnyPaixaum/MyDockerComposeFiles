@@ -1,0 +1,32 @@
+version: "3"
+services:
+
+  guacd:
+    image: guacamole/guacd:1.5.4
+    networks:
+         - guacamole_net
+    ports:
+      - "4822:4822"
+    restart: unless-stopped
+    environment:
+      - GUACD_LOG_LEVEL=debug
+
+  guacweb:
+    image: guacamole/guacamole:1.5.4
+    networks:
+         - guacamole_net
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - GUACD_HOSTNAME=guacd
+      - GUACD_PORT=4822
+      - POSTGRESQL_HOSTNAME=10.0.0.11
+      - POSTGRESQL_PORT=5432
+      - POSTGRES_DATABASE=guac_db
+      - POSTGRES_USER=guac_user
+      - POSTGRES_PASSWORD=>w6w@e#:fy@M!qXAHiT%
+
+networks:
+   guacamole_net:
+      external: true

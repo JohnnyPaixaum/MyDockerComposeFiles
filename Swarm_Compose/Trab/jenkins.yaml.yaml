@@ -1,0 +1,46 @@
+version: "3.3"
+
+services:
+
+   jenkins:
+      image: "jenkins:2.60.3-alpine"
+      networks:
+         - net-proxy
+      volumes:
+         - "/var/run/docker.sock:/var/run/docker.sock:ro"
+         - "jenkins_data:/var/jenkins_home"
+         - "jenkins_certssh:/root/.ssh/"
+      deploy:
+         mode: replicated
+         replicas: 1
+         placement:
+            constraints:
+               - node.role == manager
+         update_config:
+            parallelism: 1
+            delay: 10s
+         restart_policy:
+            condition: on-failure
+         labels:
+            - "traefik.frontend.rule=Host:jenkins.opovo.local"
+            - "traefik.enable=true"
+            - "traefik.docker.network=net-proxy"
+            - "traefik.port=8080"
+            - "traefik.frontend.entryPoints=https"
+            - "traefik.backend.loadbalancer.stickiness=true"
+
+networks:
+   net-proxy:
+      external: true
+ 
+volumes:
+   jenkins_data:
+      driver_opts:
+         type: "none"
+         o: "bind"
+         device: "/mnt/gluster_docker/volumes/jenkins_data/_data"
+   jenkins_certssh:
+      driver_opts:
+         type: "none"
+         o: "bind"
+         device: "/mnt/gluster_docker/volumes/jenkins_certssh/_data"

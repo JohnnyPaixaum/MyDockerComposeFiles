@@ -1,0 +1,13 @@
+version: "3.3"
+
+services:
+
+   busybox:
+	    image: "busybox:latest"
+      networks:
+         - principal
+
+networks:
+   principal:
+      external: true
+      driver: overlay

@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+
+registry:
+container_name: docker_repository
+image: registry:2.8.3
+volumes:
+- /DOCKER_VOLUMES/docker_registry/data:/var/lib/registry:rw
+ #- /DOCKER_VOLUMES/docker_registry/certs:/certs:ro
+- /etc/letsencrypt/archive/things.madlabs.com.br:/certs:ro
+- /DOCKER_VOLUMES/docker_registry/auth:/auth:ro
+ports:
+- "5000:5000"
+restart: always
+environment:
+- REGISTRY_HTTP_TLS_CERTIFICATE=/certs/fullchain1.pem
+- REGISTRY_HTTP_TLS_KEY=/certs/privkey1.pem
+- REGISTRY_AUTH=htpasswd
+- REGISTRY_AUTH_HTPASSWD_REALM="Madlabs Registry"
+- REGISTRY_AUTH_HTPASSWD_PATH=/auth/.htpasswd
+
+### Make .htpasswd via command; htpasswd -Bn user_registry ###

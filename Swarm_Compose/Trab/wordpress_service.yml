@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+
+   web_wordpress: #Nome para o container
+     image: wordpress:latest #Imagem que será consumida pelo container/service
+     links: #"Conecta" um container a outro mesmo em serviços diferentes
+       - myadmin:database #Exemplo de link a um banco de dado
+     networks: #Defini a network em que o container irá usar para se comunicar com demais containers e a rede
+       - interna
+     volumes: #Define um caminho onde o firaca os arquivos de persistencia do container/service
+       - /dir_persistence_docker/dir_www/blogs_wp:/var/www/html:rw #Exemplo de declaração de um Bind_Volume(PATH_da_maquina:PATH_do_container).
+     environment:
+       WORDPRESS_DB_HOST: database:3306
+       WORDPRESS_DB_NAME: blogs_db
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress
+     deploy:
+       labels:
+         - "traefik.front.rule=HOST:blogs.opovo.local"
+         - "traefik.enable=true"
+         - "traefik.port=80"
+         - "traefik.tags=interna"
+         - "traefik.docker.network=interna"
+
+networks:
+   interna:
+      external: true

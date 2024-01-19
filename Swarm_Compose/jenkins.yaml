@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+
+   jenkins:
+      image: "jenkins/jenkins:lts-alpine"
+      networks:
+         - net-proxy
+      volumes:
+         - "jenkins_home:/var/jenkins_home"
+      deploy:
+         mode: replicated
+         replicas: 2
+         placement:
+            max_replicas_per_node: 1
+         update_config:
+            parallelism: 1
+            delay: 10s
+         restart_policy:
+            condition: on-failure
+         labels:
+            - "traefik.frontend.rule=Host:jenkins.labary.local"
+            - "traefik.enable=true"
+            - "traefik.docker.network=net-proxy"
+            - "traefik.port=8080"
+            - "traefik.frontend.entryPoints=https"
+            - "traefik.backend.loadbalancer.stickiness=true"
+
+networks:
+   net-proxy:
+      external: true
+      
+volumes:
+   jenkins_home:
+      driver_opts:
+         type: "none"
+         o: "bind"
+         device: "/mnt/gluster_docker/volumes/jenkins_home/_data"

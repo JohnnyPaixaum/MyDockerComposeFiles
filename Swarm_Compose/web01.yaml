@@ -1,0 +1,39 @@
+version: "3.3"
+
+services:
+
+   httpd:
+      image: "httpd:latest"
+      #volumes:
+      #   - "projeto02_data:/usr/local/apache2/htdocs"
+      networks:
+         - principal
+      deploy:
+         replicas: 5
+         resources:
+           limits:
+             cpus: '0.50'
+             memory: 30M
+         restart_policy:
+            condition: on-failure
+            delay: 5s
+            max_attempts: 3
+            window: 120s
+         labels:
+            - "traefik.frontend.rule=Host:projeto01.labary.local"
+            - "traefik.port=80"        
+            - "traefik.docker.network=principal"
+            - "traefik.frontend.entryPoints=http"
+            - "traefik.backend.loadbalancer.method=drr"
+
+networks:
+   principal:
+      external: true
+      driver: overlay
+
+volumes:
+   projeto02_data:
+      driver_opts:
+         type: "nfs"
+         o: "addr=localhost,rw"
+         device: ":/gfs/volumes/projeto02"

@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+
+   app:
+      image: "gocd/gocd-server:v20.3.0"
+      volumes:
+         - "gocd_data:/home/go"
+         - "gocd_plugins:/godata"
+      networks:
+         - net-proxy
+      deploy:
+         #mode: replicated
+         #replicas: 2
+         #resources:
+         #  limits:
+         #    cpus: '2.50'
+         #    memory: 225M
+         restart_policy:
+            condition: on-failure
+            delay: 5s
+            max_attempts: 3
+            window: 120s
+         labels:
+            - "traefik.frontend.rule=Host:gocd.labary.local"
+            - "traefik.port=8153"
+            - "traefik.docker.network=principal"
+            - "traefik.frontend.entryPoints=http"
+            - "traefik.backend.loadbalancer.stickiness=true"
+            - "traefik.backend.loadbalancer.method=drr"
+
+networks:
+   net-proxy:
+      external: true
+
+volumes:
+   gocd_data:
+      driver_opts:
+         type: "nfs"
+         o: "addr=192.168.1.34,nolock,soft,rw"
+         device: ":/mnt/dir_docker_volume/gocd/date"
+   gocd_plugins:
+      driver_opts:
+         type: "nfs"
+         o: "addr=192.168.1.34,nolock,soft,rw"
+         device: ":/mnt/dir_docker_volume/gocd/plugins"

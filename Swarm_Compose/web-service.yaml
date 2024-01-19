@@ -1,0 +1,28 @@
+version: "3.3"
+
+services:
+
+   httpd:
+      image: httpd:latest
+      volumes:
+         - "/mnt/dir_docker/bind/web01:/var/www/html"
+      networks:
+         - principal
+      deploy:
+         labels:
+            - "traefik.frontend.rule=Host:web01.labary.local"
+            - "traefik.port=80"        
+            - "traefik.enable=true"
+            - "traefik.docker.network=principal"
+
+networks:
+   principal:
+      external: true
+      driver: overlay
+
+#volumes:
+#   web01:
+#      driver_opts:
+#         type: "nfs"
+#         o: "addr=192.168.1.34,nolock,soft,rw"
+#         device: ":/mnt/dir_docker_volume/web01"

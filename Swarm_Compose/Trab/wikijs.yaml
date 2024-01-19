@@ -1,0 +1,64 @@
+version: "3.3"
+
+services:
+
+   database:
+     image: "mariadb:10.2.7"
+     networks:
+        - interna
+     environment:
+        MYSQL_ROOT_PASSWORD: aeH@nRXvxJ_9H6w7
+        MYSQL_DATABASE: wiki
+        MYSQL_USER: wikijs
+        MYSQL_PASSWORD: 8cawXGXdrqxbEk8U
+     volumes:
+        - db_wiki:/var/lib/mysql
+     deploy:
+        restart_policy:
+           condition: on-failure
+   
+   wiki:
+      image: requarks/wiki:2
+      networks:
+         - interna
+         - net-proxy
+      depends_on:
+         - wikidata
+      environment:
+         DB_TYPE: mariadb
+         DB_HOST: docs_database
+         DB_PORT: 3306
+         DB_USER: wikijs
+         DB_PASS: 8cawXGXdrqxbEk8U
+         DB_NAME: wiki
+         WIKI_ADMIN_EMAIL: admin@test.com
+         WIKI_HOST: http://wikijs.opovo.local
+      deploy:
+         mode: replicated
+         replicas: 3
+         update_config:
+            parallelism: 1
+            delay: 10s
+         restart_policy:
+            condition: on-failure
+         labels:
+            - "traefik.frontend.rule=Host:wikijs.opovo.local"
+            - "traefik.enable=true"
+            - "traefik.port=3000"
+            - "traefik.docker.network=net-proxy"
+            - "traefik.frontend.entryPoints=http"
+            - "traefik.backend.loadbalancer.stickiness=true"
+            - "traefik.backend.loadbalancer.method=drr"
+
+networks:
+   interna:
+      external: true
+   net-proxy:
+      external: true
+
+volumes:
+   db_wiki:
+      driver_opts:
+         type: "none"
+         o: "bind"
+         device: "/mnt/gluster_docker/volumes/wikijs_data/_data/"

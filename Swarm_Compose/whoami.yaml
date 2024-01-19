@@ -1,0 +1,31 @@
+version: "3.3"
+
+services:
+
+   whoami:
+      image: "containous/whoami:latest"
+      networks:
+         - net-proxy
+      deploy:
+         mode: global
+         resources:
+           limits:
+             memory: 15M
+         restart_policy:
+            condition: on-failure
+            delay: 5s
+            max_attempts: 3
+            window: 120s
+         labels:
+            - "traefik.frontend.rule=Host:whoami.labary.local"
+            - "traefik.port=80"        
+            - "traefik.docker.network=net-proxy"
+            - "traefik.frontend.entryPoints=https"
+            - "traefik.backend.loadbalancer.stickiness=true"
+            - "traefik.backend.loadbalancer.method=drr"
+            - "traefik.enable=true"
+
+networks:
+   net-proxy:
+      external: true
+      driver: overlay            

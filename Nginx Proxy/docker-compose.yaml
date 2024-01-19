@@ -1,0 +1,24 @@
+version: "3"
+services:
+
+  reverse:
+    image: nginx:alpine
+    networks:
+         - net-proxy
+    volumes:
+      - nginx-proxy_data:/etc/nginx/
+      - nginx-proxy_cert:/etc/ssl/certs/
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+
+networks:
+   net-proxy:
+      external: true
+
+volumes:
+  nginx-proxy_data:
+      external: true
+  nginx-proxy_cert:
+      external: true

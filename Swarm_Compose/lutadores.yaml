@@ -1,0 +1,40 @@
+version: "3.3"
+
+services:
+
+   lutadores:
+      image: node:latest
+      command: "npm install /home" "npm start"
+      volumes:
+         - "lutadores_data:/home"
+      networks:
+         - principal
+      deploy:
+         replicas: 5
+         resources:
+            limits:
+              cpus: '0.25'
+              memory: 50M
+         restart_policy:
+            condition: on-failure
+            delay: 5s
+            max_attempts: 3
+            window: 120s
+         labels:
+            - "traefik.frontend.rule=Host:lutadores.labary.local"
+            - "traefik.port=3000"        
+            - "traefik.docker.network=principal"
+            - "traefik.frontend.entryPoints=http"
+            - "traefik.backend.loadbalancer.method=drr"
+
+networks:
+   principal:
+      external: true
+      driver: overlay
+
+volumes:
+   lutadores_data:
+      driver_opts:
+         type: "nfs"
+         o: "addr=192.168.1.34,nolock,soft,rw"
+         device: ":/mnt/dir_docker_volume/lutadores"

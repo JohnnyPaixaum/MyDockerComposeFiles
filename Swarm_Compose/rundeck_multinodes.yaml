@@ -1,0 +1,76 @@
+version: "3.8"
+
+services:
+
+   mysql_rundeck:
+      image: mysql:5.7
+      environment:
+         MYSQL_DATABASE: rundeck
+         MYSQL_USER: rundeck
+         MYSQL_PASSWORD: 641949548825f1f8c51d5f547ab88faa
+         MYSQL_RANDOM_ROOT_PASSWORD : 'true'
+      volumes:
+         - mysql_rundeck_date:/var/lib/mysql
+
+   rundeck02:
+      image: "johnnysilva110/rundeck-docker:1.2"
+      depends_on:
+      volumes:
+         #- "rundeck02_data:/home/rundeck/server/data"
+         #- "rundeck02_cert:/root/.ssh"
+         - "/var/run/docker.sock:/var/run/docker.sock"
+      networks:
+         - net-proxy
+      environment:
+         #RUNDECK_SERVER_UUID: 2
+         #RUNDECK_SERVER_ADDRESS: rundeck.labary.local
+         RUNDECK_GRAILS_URL: http://rundeck02.labary.local
+         EXTERNAL_SERVER_URL: http://rundeck02.labary.local
+         MYSQL_DATABASE: rundeck
+         MYSQL_USER: rundeck
+         MYSQL_PASSWORD: 641949548825f1f8c51d5f547ab88faa
+      deploy:
+         mode: replicated
+         replicas: 1
+         placement:
+            constraints: [node.role == manager] 
+         #max_replicas_per_node: 1
+         #resources:
+           #limits:
+             #cpus: '3.90'
+           #  memory: 400MB
+           #reservations:
+             #cpus: '2.50'
+             #memory: 250MB
+         restart_policy:
+            condition: on-failure
+         labels:
+            - "traefik.frontend.rule=Host:rundeck.labary.local"
+            - "traefik.port=4440"
+            - "traefik.docker.network=net-proxy"
+            - "traefik.frontend.entryPoints=http"
+            - "traefik.backend.loadbalancer.stickiness=true"
+            - "traefik.backend.loadbalancer.method=drr"
+            - "traefik.backend.loadbalancer.swarm=true"          
+
+networks:
+   net-proxy:
+      driver: overlay
+      external: true
+
+volumes:
+   mysql_rundeck_date:
+      driver_opts:
+         type: "none"
+         o: "bind"
+         device: "/mnt/gluster_docker/volumes/mysql_rundeck_data/_date"
+#   rundeck02_data:
+#      driver_opts:
+#         type: "none"
+#         o: "bind"
+#         device: "/mnt/gluster_docker/volumes/rundeck02_date/_date"
+#   rundeck02_cert:
+#      driver_opts:
+#         type: "none"
+#         o: "bind"
+#         device: "/mnt/gluster_docker/volumes/rundeck02_cert/_date"

@@ -1,0 +1,65 @@
+version: '3'
+services:
+  mongodb:
+    container_name: MONGODB
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: Admin
+    volumes:
+      - mongodb_data:/data/db
+    network_mode: "host"
+  
+  elasticsearch:
+    container_name: ELASTICSEARCH
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    restart: always
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=localhost
+      - network.host=0.0.0.0
+      - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true -Xms512m -Xmx512m"
+      - discovery.type=single-node
+    deploy:
+      resources:
+         limits:
+            memory: 1g
+    network_mode: "host"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data:rw
+
+  graylog:
+    container_name: GRAYLOG
+    image: graylog/graylog:5.1
+    restart: always
+    environment:
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://192.168.1.16:9000/
+      - GRAYLOG_MONGODB_URI=mongodb://root:Admin@192.168.1.16:27017/graylog?authSource=admin
+      - GRAYLOG_ELASTICSEARCH_HOSTS=http://192.168.1.16:9200
+      - GRAYLOG_PASSWORD_SECRET=LcsMYGKz9HE+ytRmneAPLA==
+      - GRAYLOG_ROOT_PASSWORD_SHA2=c1c224b03cd9bc7b6a86d77f5dace40191766c485cd55dc48caf9ac873335d6f
+    volumes:
+      - graylog_data:/usr/share/graylog/data:rw
+    #ports:
+    #  - target: 9000
+    #    published: 9000
+    #    protocol: tcp
+    #    mode: host
+    #  - target: 12201
+    #    published: 12201
+    #    protocol: udp
+    #    mode: host
+    #  - target: 1514
+    #    published: 1514
+    #    protocol: tcp
+    #    mode: host
+    network_mode: "host"
+    depends_on:
+      - mongodb
+      - elasticsearch
+
+volumes:
+  graylog_data:
+  mongodb_data:
+  elasticsearch_data:

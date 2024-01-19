@@ -1,0 +1,18 @@
+version: "3"  
+
+services: 
+
+  web_mustang:                                                                                
+    image: "httpd:latest"
+    networks:
+       - interna                                                                                                                                                                                                                                                                                                                                                                 
+    deploy:
+       labels:
+          - "traefik.docker.network=interna"
+          - "traefik.port=80"
+          - "traefik.frontend.rule=Host:mustang.baleiaazul.opovo.local"
+          - "traefik.enable=true"
+          - "traefik.backend=mustang"
+networks:                                                                            
+   interna:
+      external: true
